@@ -1,0 +1,113 @@
+{
+  "info": {
+    "_postman_id": "5f5f0ea3-a8c6-4b0b-b0a5-2e6db1b35d72",
+    "name": "Fitness Tracker",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "calculate valid profile",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"age\": 28,\n  \"heightCm\": 178,\n  \"weightKg\": 72,\n  \"sex\": \"M\",\n  \"activityLevel\": \"MEDIUM\",\n  \"goal\": \"MAINTAIN\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/calculate",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "calculate"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const json = pm.response.json();",
+              "",
+              "pm.test(\"Response has targetCalories\", function () {",
+              "    pm.expect(json).to.have.property(\"targetCalories\");",
+              "});",
+              "",
+              "pm.test(\"targetCalories is at least 1200\", function () {",
+              "    pm.expect(json.targetCalories).to.be.at.least(1200);",
+              "});",
+              "",
+              "pm.test(\"Macros calories equals targetCalories\", function () {",
+              "    pm.expect(json.macros.calories).to.eql(json.targetCalories);",
+              "});",
+              "",
+              "pm.test(\"Protein is 110 for MAINTAIN\", function () {",
+              "    pm.expect(json.macros.proteinG).to.eql(110);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "calculate invalid profile",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"age\": 11,\n  \"heightCm\": 178,\n  \"weightKg\": 72,\n  \"sex\": \"M\",\n  \"activityLevel\": \"MEDIUM\",\n  \"goal\": \"MAINTAIN\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/calculate",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "calculate"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 400\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "const json = pm.response.json();",
+              "",
+              "pm.test(\"Response has error message\", function () {",
+              "    pm.expect(json.error).to.eql(\"Возраст должен быть от 12 до 80\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
