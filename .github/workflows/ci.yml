@@ -1,0 +1,122 @@
+name: Java CI
+
+on:
+  push:
+    branches:
+      - main
+      - feature-*
+      - codex/*
+  pull_request:
+
+jobs:
+  test-and-coverage:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: Run tests with JaCoCo
+        run: mvn clean test
+
+      - name: Build coverage summary
+        id: coverage
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os
+          import xml.etree.ElementTree as ET
+
+          report = "target/site/jacoco/jacoco.xml"
+          root = ET.parse(report).getroot()
+
+          service_branch = None
+          for package in root.findall("package"):
+              if package.get("name") == "ru/prisma/fitnesstracker/service":
+                  for counter in package.findall("counter"):
+                      if counter.get("type") == "BRANCH":
+                          missed = int(counter.get("missed"))
+                          covered = int(counter.get("covered"))
+                          total = missed + covered
+                          service_branch = (covered, total, (covered * 100.0 / total) if total else 100.0)
+
+          project_branch = None
+          for counter in root.findall("counter"):
+              if counter.get("type") == "BRANCH":
+                  missed = int(counter.get("missed"))
+                  covered = int(counter.get("covered"))
+                  total = missed + covered
+                  project_branch = (covered, total, (covered * 100.0 / total) if total else 100.0)
+                  break
+
+          if service_branch is None or project_branch is None:
+              raise SystemExit("JaCoCo branch coverage counters not found")
+
+          summary = (
+              "## Coverage Report\n"
+              f"- Service branch coverage: {service_branch[2]:.2f}% ({service_branch[0]}/{service_branch[1]})\n"
+              f"- Project branch coverage: {project_branch[2]:.2f}% ({project_branch[0]}/{project_branch[1]})\n"
+              "- HTML report: `target/site/jacoco/index.html`\n"
+          )
+
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as fh:
+              fh.write(summary)
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
+              fh.write(f"service_branch_pct={service_branch[2]:.2f}\n")
+              fh.write(f"service_branch_ratio={service_branch[0]}/{service_branch[1]}\n")
+              fh.write(f"project_branch_pct={project_branch[2]:.2f}\n")
+              fh.write(f"project_branch_ratio={project_branch[0]}/{project_branch[1]}\n")
+          PY
+
+      - name: Comment coverage on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const marker = '<!-- fitness-tracker-coverage -->';
+            const body = `${marker}
+            ## JaCoCo Coverage
+            - Service branch coverage: ${{ steps.coverage.outputs.service_branch_pct }}% (${{ steps.coverage.outputs.service_branch_ratio }})
+            - Project branch coverage: ${{ steps.coverage.outputs.project_branch_pct }}% (${{ steps.coverage.outputs.project_branch_ratio }})
+            - HTML report is available in the workflow artifact \`jacoco-html-report\`.`;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find((comment) => comment.body.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+
+      - name: Upload JaCoCo HTML report
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-html-report
+          path: target/site/jacoco
