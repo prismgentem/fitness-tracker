@@ -31,8 +31,7 @@ public class CalorieCalculator {
             bmr = 10 * weight + 6.25 * height - 5 * age - 161;
         }
 
-        double activityMultiplier = resolveActivityMultiplier(profile.getActivityLevel());
-        double tdee = bmr * activityMultiplier;
+        double tdee = bmr * resolveActivityMultiplier(profile.getActivityLevel());
         double targetCalories = applyGoalAdjustment(tdee, profile.getGoal());
 
         if (targetCalories < 1200) {
@@ -52,8 +51,7 @@ public class CalorieCalculator {
 
     private double applyGoalAdjustment(double tdee, Goal goal) {
         return switch (goal) {
-            // LOSE: deficit 300 kcal (updated)
-            case LOSE -> tdee - 300;
+            case LOSE -> tdee - 400;
             case MAINTAIN -> tdee;
             case GAIN -> tdee + 300;
         };
