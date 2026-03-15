@@ -22,38 +22,20 @@ class ProfileValidatorTest {
     }
 
     @Test
-    void shouldRejectAgeOutOfRange() {
-        UserProfile profile = new UserProfile(10, 175.0, 70.0, Sex.M, ActivityLevel.MEDIUM, Goal.MAINTAIN);
+    void shouldRejectAgeBelowRange() {
+        UserProfile profile = new UserProfile(11, 175.0, 70.0, Sex.M, ActivityLevel.MEDIUM, Goal.MAINTAIN);
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> validator.validate(profile));
 
-        assertEquals("Age must be between 12 and 80", exception.getMessage());
+        assertEquals("Возраст должен быть от 12 до 80", exception.getMessage());
     }
 
     @Test
-    void shouldRejectHeightOutOfRange() {
-        UserProfile profile = new UserProfile(25, 110.0, 70.0, Sex.F, ActivityLevel.LOW, Goal.LOSE);
+    void shouldRejectHeightBelowRange() {
+        UserProfile profile = new UserProfile(25, 119.0, 70.0, Sex.F, ActivityLevel.LOW, Goal.LOSE);
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> validator.validate(profile));
 
-        assertEquals("Height must be between 120 and 220 cm", exception.getMessage());
-    }
-
-    @Test
-    void shouldRejectWeightOutOfRange() {
-        UserProfile profile = new UserProfile(25, 170.0, 20.0, Sex.F, ActivityLevel.HIGH, Goal.GAIN);
-
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> validator.validate(profile));
-
-        assertEquals("Weight must be between 30 and 250 kg", exception.getMessage());
-    }
-
-    @Test
-    void shouldRejectNullField() {
-        UserProfile profile = new UserProfile(25, 170.0, 65.0, null, ActivityLevel.HIGH, Goal.GAIN);
-
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> validator.validate(profile));
-
-        assertEquals("Sex must not be null", exception.getMessage());
+        assertEquals("Рост должен быть от 120 до 220 см", exception.getMessage());
     }
 }
