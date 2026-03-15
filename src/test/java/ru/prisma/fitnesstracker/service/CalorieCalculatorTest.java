@@ -61,6 +61,19 @@ class CalorieCalculatorTest {
         assertEquals(expectedRounded, actual);
     }
 
+    @Test
+    void shouldApplyLoseDeficit300() {
+        UserProfile profile = new UserProfile(30, 180.0, 80.0, Sex.M, ActivityLevel.MEDIUM, Goal.LOSE);
+
+        int actual = calorieCalculator.calculateTargetCalories(profile);
+
+        double bmr = 10 * 80.0 + 6.25 * 180.0 - 5 * 30 + 5;
+        double expected = bmr * 1.55 - 300;
+        int expectedRounded = (int) Math.round(expected);
+
+        assertEquals(expectedRounded, actual);
+    }
+
     private int expectedCalories(UserProfile profile) {
         double bmr;
         if (profile.getSex() == Sex.M) {
@@ -76,7 +89,7 @@ class CalorieCalculatorTest {
         };
 
         double target = switch (profile.getGoal()) {
-            case LOSE -> bmr * activityMultiplier - 400;
+            case LOSE -> bmr * activityMultiplier - 300;
             case MAINTAIN -> bmr * activityMultiplier;
             case GAIN -> bmr * activityMultiplier + 300;
         };
