@@ -52,8 +52,8 @@ public class CalorieCalculator {
 
     private double applyGoalAdjustment(double tdee, Goal goal) {
         return switch (goal) {
-            // LOSE: deficit 350 kcal (updated)
-            case LOSE -> tdee - 350;
+            // LOSE: deficit 300 kcal (updated)
+            case LOSE -> tdee - 300;
             case MAINTAIN -> tdee;
             case GAIN -> tdee + 300;
         };
