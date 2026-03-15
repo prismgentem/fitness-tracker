@@ -12,7 +12,7 @@
 Запуск тестов:
 
 ```bash
-mvn test
+mvn -q test
 ```
 
 Сборка jar:
@@ -33,9 +33,22 @@ mvn -q exec:java
 java -cp target/fitness-tracker-1.0-SNAPSHOT.jar ru.prisma.fitnesstracker.App
 ```
 
+Запуск HTTP API:
+
+```bash
+mvn -q exec:java -Dexec.mainClass=ru.prisma.fitnesstracker.api.FitnessTrackerHttpServer
+```
+
+или
+
+```bash
+java -cp target/fitness-tracker-1.0-SNAPSHOT.jar ru.prisma.fitnesstracker.api.FitnessTrackerHttpServer
+```
+
 ## Структура пакетов
 
 - `ru.prisma.fitnesstracker.model` - доменные модели пользователя
 - `ru.prisma.fitnesstracker.model.enums` - перечисления пола, активности и цели
 - `ru.prisma.fitnesstracker.service` - валидация профиля и расчет калорий
+- `ru.prisma.fitnesstracker.api` - локальный HTTP API для системного тестирования
 - `src/test/java` - JUnit 5 тесты для валидатора и калькулятора
