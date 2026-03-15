@@ -48,6 +48,19 @@ class CalorieCalculatorTest {
         assertEquals(1200, targetCalories);
     }
 
+    @Test
+    void shouldUseCorrectMediumActivityFactor() {
+        UserProfile profile = new UserProfile(30, 180.0, 80.0, Sex.M, ActivityLevel.MEDIUM, Goal.MAINTAIN);
+
+        int actual = calorieCalculator.calculateTargetCalories(profile);
+
+        double bmr = 10 * 80.0 + 6.25 * 180.0 - 5 * 30 + 5;
+        double expected = bmr * 1.55;
+        int expectedRounded = (int) Math.round(expected);
+
+        assertEquals(expectedRounded, actual);
+    }
+
     private int expectedCalories(UserProfile profile) {
         double bmr;
         if (profile.getSex() == Sex.M) {
